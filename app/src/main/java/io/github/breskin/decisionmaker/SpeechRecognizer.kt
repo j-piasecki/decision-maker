@@ -122,7 +122,6 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
     override fun onBufferReceived(p0: ByteArray?) {}
 
     override fun onEndOfSpeech() {
-        onFinish(true)
         _isActive = false
     }
 
@@ -136,6 +135,7 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
         val data = bundle?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0) ?: return
         if (data.isNotEmpty()) {
             onUpdate(data)
+            onFinish(true)
         }
     }
 
