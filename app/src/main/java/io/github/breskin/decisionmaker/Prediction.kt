@@ -74,6 +74,10 @@ class PredictionState(private val backgroundColor: Color, private val tint: Colo
     }
 
     fun onQueryFinished(coroutineScope: CoroutineScope) {
+        if (query.isEmpty()) {
+            return
+        }
+
         _isFinished = false
         coroutineScope.launch {
             animationProgress.snapTo(0f)
@@ -98,9 +102,9 @@ class PredictionState(private val backgroundColor: Color, private val tint: Colo
                 animationProgress.snapTo(1.25f)
                 val prevChosen = chosenOption
                 _chosenOption = -1
-                delay(200)
+                delay(400)
                 animationProgress.animateTo(0f, spring(stiffness = 50f))
-                delay(800)
+                delay(600)
                 _chosenOption = prevChosen
             }
 

@@ -39,26 +39,18 @@ class RmsCache(size: Int) {
     var size = 0
         private set
 
-    val max: Float
+    val value: Float
         get() {
-            var result = 0f
+            var sum = 0f
+            var max = 0f
             for (i in 0 until size) {
-                if (data[i] > result) {
-                    result = data[i]
+                sum += data[i]
+                if (data[i] > max) {
+                    max = data[i]
                 }
             }
 
-            return result
-        }
-
-    val average: Float
-        get() {
-            var result = 0f
-            for (i in 0 until size) {
-                result += data[i]
-            }
-
-            return if (size > 0) result / size else 0f
+            return if (size == 0 || max == 0f) 0f else sum / size / max
         }
 
     fun add(value: Float) {
@@ -98,12 +90,17 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
     private var onUpdate: (String) -> Unit = {}
     private var onFinish: (Boolean) -> Unit = {}
 
-    public fun startListening(onUpdate: (String) -> Unit, onFinish: (Boolean) -> Unit) {
+    fun startListening(onUpdate: (String) -> Unit, onFinish: (Boolean) -> Unit) {
         reset()
         this.onUpdate = onUpdate
         this.onFinish = onFinish
         _isActive = true
         recognizer.startListening(intent)
+
+        // great solution for starting animation :)
+        rmsCache.add(1f)
+        rmsCache.add(1f)
+        rmsCache.add(1f)
     }
 
     override fun onReadyForSpeech(p0: Bundle?) {
@@ -116,7 +113,7 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
 
     override fun onRmsChanged(rms: Float) {
         rmsCache.add(rms)
-        _animationProgress = max(rmsCache.average / rmsCache.max, 0f)
+        _animationProgress = max(rmsCache.value, 0f)
     }
 
     override fun onBufferReceived(p0: ByteArray?) {}

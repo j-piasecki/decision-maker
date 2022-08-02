@@ -158,23 +158,3 @@ fun RecordButtonPreview() {
         )
     }
 }
-
-@Preview(
-    name = "Expanded",
-    uiMode = UI_MODE_NIGHT_NO,
-    showBackground = true
-)
-@Composable
-fun RecordButtonPreviewExpanded() {
-    DecisionMakerTheme() {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            RecordButton(
-                Modifier
-                    .background(Color.White)
-                    .width(128.dp)
-                    .height(128.dp),
-                animationProgress = 1f
-            )
-        }
-    }
-}
