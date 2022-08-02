@@ -50,6 +50,10 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
     val animationProgress: Float
         get() = _animationProgress
 
+    private var _isActive by mutableStateOf(false)
+    val isActive: Boolean
+        get() = _isActive
+
     private var onUpdate: (String) -> Unit = {}
     private var onFinish: (Boolean) -> Unit = {}
 
@@ -57,6 +61,7 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
         reset()
         this.onUpdate = onUpdate
         this.onFinish = onFinish
+        _isActive = true
         recognizer.startListening(intent)
     }
 
@@ -77,10 +82,12 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
 
     override fun onEndOfSpeech() {
         onFinish(true)
+        _isActive = false
     }
 
     override fun onError(p0: Int) {
         onFinish(false)
+        _isActive = false
         reset()
     }
 
@@ -105,5 +112,6 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
         this.onFinish = {}
         maxRms = 1f
         _animationProgress = 0f
+        _isActive = false
     }
 }

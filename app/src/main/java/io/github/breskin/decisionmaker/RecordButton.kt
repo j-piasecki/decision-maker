@@ -40,6 +40,7 @@ import io.github.breskin.decisionmaker.ui.theme.DecisionMakerTheme
 fun RecordButton(
     modifier: Modifier = Modifier,
     animationProgress: Float = 0f,
+    isActive: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     var showPermissionModal by remember {
@@ -54,7 +55,7 @@ fun RecordButton(
         }
     }
 
-    val animProgress = animationProgress.coerceIn(0f, 0.9f)
+    val animProgress = animationProgress.coerceIn(if (isActive) 0.1f else 0f, 0.8f)
 
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val width = maxWidth / 2
@@ -64,7 +65,7 @@ fun RecordButton(
         Box(
             Modifier
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f))
                 .width(width + width * animProgress)
                 .height(height + height * animProgress)
         ) {}
@@ -78,12 +79,14 @@ fun RecordButton(
                             Manifest.permission.RECORD_AUDIO
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        onClick()
+                        if (!isActive) {
+                            onClick()
+                        }
                     } else {
                         launcher.launch(Manifest.permission.RECORD_AUDIO)
                     }
                 }
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.secondary)
                 .width(width)
                 .height(height),
             contentAlignment = Alignment.Center
@@ -91,7 +94,7 @@ fun RecordButton(
             Icon(
                 painter = painterResource(id = R.drawable.ic_mic_24),
                 contentDescription = "Recorder icon",
-                tint = MaterialTheme.colorScheme.onPrimary,
+                tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = if (isActive) 1f else 0.7f),
                 modifier = Modifier.fillMaxSize(0.5f)
             )
         }

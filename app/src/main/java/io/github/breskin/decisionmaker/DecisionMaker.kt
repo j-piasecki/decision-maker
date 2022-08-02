@@ -1,35 +1,39 @@
 package io.github.breskin.decisionmaker
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun DecisionMaker() {
     val recognizer = rememberSpeechRecognizer()
-    var query by remember {
-        mutableStateOf("")
-    }
+    val predictionState = rememberPredictionState()
 
-    Column() {
-        Text(text = query)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 64.dp, bottom = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Prediction(state = predictionState)
 
         RecordButton(
             Modifier
-                .width(128.dp)
-                .height(128.dp),
-        animationProgress = recognizer.animationProgress
+                .width(192.dp)
+                .height(192.dp),
+            animationProgress = recognizer.animationProgress,
+            isActive = recognizer.isActive
         ) {
             recognizer.startListening(onUpdate = {
-                query = it
+                predictionState.query = it
             }, onFinish = {
 
             })
