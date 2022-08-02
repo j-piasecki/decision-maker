@@ -42,6 +42,7 @@ fun rememberPredictionState(): PredictionState {
 class PredictionState(private val backgroundColor: Color, private val tint: Color) {
     private var _isFinished by mutableStateOf(true)
     private var _isListening by mutableStateOf(true)
+    private var _highlightPrefix by mutableStateOf(false)
     private var _result by mutableStateOf(listOf<String>())
     private var _chosenOption by mutableStateOf(0)
 
@@ -53,6 +54,9 @@ class PredictionState(private val backgroundColor: Color, private val tint: Colo
 
     val isListening: Boolean
         get() = _isListening
+
+    val highlightPrefix: Boolean
+        get() = _highlightPrefix
 
     val result: List<String>
         get() = _result
@@ -66,6 +70,7 @@ class PredictionState(private val backgroundColor: Color, private val tint: Colo
     fun reset() {
         query = ""
         _isListening = true
+        _highlightPrefix = false
     }
 
     fun onQueryFinished(coroutineScope: CoroutineScope) {
@@ -80,18 +85,7 @@ class PredictionState(private val backgroundColor: Color, private val tint: Colo
         _result = if (keywordIndex == -1) {
             listOf(query)
         } else {
-            val split = query.split(" czy ")
-            val wordsRight = split[1].split(" ")
-            val wordsLeft = split[0].split(" ")
-
-            val prefixLength =
-                if (wordsRight.size > wordsLeft.size) 0 else wordsLeft.size - wordsRight.size
-
-            val prefix = wordsLeft.take(prefixLength).joinToString(" ") + if (prefixLength != 0) " " else ""
-            val left = wordsLeft.takeLast(wordsRight.size).joinToString(" ")
-            val right = split[1]
-
-            listOf(prefix, left, " czy ", right)
+            divideQuery()
         }
 
         _chosenOption = floor(Math.random() * 2).toInt()
@@ -117,6 +111,27 @@ class PredictionState(private val backgroundColor: Color, private val tint: Colo
             }
         }
     }
+
+    private fun divideQuery(): List<String> {
+        val split = query.split(" czy ")
+        val wordsRight = split[1].split(" ")
+        val wordsLeft = split[0].split(" ")
+
+        if (split[1] == "nie") {
+            return listOf("", split[0], " czy ", split[1])
+        } else if (wordsRight.size == 1) {
+            _highlightPrefix = true
+        }
+
+        val prefixLength =
+            if (wordsRight.size > wordsLeft.size) 0 else wordsLeft.size - wordsRight.size
+
+        val prefix = wordsLeft.take(prefixLength).joinToString(" ") + if (prefixLength != 0) " " else ""
+        val left = wordsLeft.takeLast(wordsRight.size).joinToString(" ")
+        val right = split[1]
+
+        return listOf(prefix, left, " czy ", right)
+    }
 }
 
 @Composable
@@ -140,7 +155,7 @@ fun Prediction(state: PredictionState) {
                 Text(
                     buildAnnotatedString {
                         withStyle(style = SpanStyle(
-                            color = color.copy(alpha = (1.25f - state.animationProgress.value).coerceAtMost(1f))
+                            color = if (state.highlightPrefix) state.chosenColor.value else color.copy(alpha = (1.25f - state.animationProgress.value).coerceAtMost(1f))
                         )) {
                             append(state.result[0])
                         }
