@@ -2,13 +2,11 @@ package io.github.breskin.decisionmaker
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.content.res.Configuration.UI_MODE_NIGHT_MASK
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -56,6 +54,8 @@ fun RecordButton(
         }
     }
 
+    val animProgress = animationProgress.coerceIn(0f, 0.9f)
+
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val width = maxWidth / 2
         val height = maxHeight / 2
@@ -65,8 +65,8 @@ fun RecordButton(
             Modifier
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-                .width(width + width * animationProgress)
-                .height(height + height * animationProgress)
+                .width(width + width * animProgress)
+                .height(height + height * animProgress)
         ) {}
 
         Box(
