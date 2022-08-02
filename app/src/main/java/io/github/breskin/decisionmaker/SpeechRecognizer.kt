@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.max
+import kotlin.math.min
 
 
 @Composable
@@ -32,6 +33,46 @@ fun rememberSpeechRecognizer(): SpeechRecognizerState {
     return recognizer
 }
 
+class RmsCache(size: Int) {
+    private val data = FloatArray(size)
+    private var nextItem = 0
+    var size = 0
+        private set
+
+    val max: Float
+        get() {
+            var result = 0f
+            for (i in 0 until size) {
+                if (data[i] > result) {
+                    result = data[i]
+                }
+            }
+
+            return result
+        }
+
+    val average: Float
+        get() {
+            var result = 0f
+            for (i in 0 until size) {
+                result += data[i]
+            }
+
+            return if (size > 0) result / size else 0f
+        }
+
+    fun add(value: Float) {
+        data[nextItem] = value
+        size = min(size + 1, data.size)
+        nextItem = (nextItem + 1) % data.size
+    }
+
+    fun clear() {
+        size = 0
+        nextItem = 0
+    }
+}
+
 class SpeechRecognizerState(private val context: Context): RecognitionListener {
     val recognizer: SpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).also {
         it.setRecognitionListener(this)
@@ -44,7 +85,7 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
         it.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
     }
 
-    private var maxRms = 1f
+    private val rmsCache = RmsCache(16)
 
     private var _animationProgress by mutableStateOf(0f)
     val animationProgress: Float
@@ -74,8 +115,8 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
     }
 
     override fun onRmsChanged(rms: Float) {
-        maxRms = max(maxRms, rms)
-        _animationProgress = max(rms / maxRms, 0f)
+        rmsCache.add(rms)
+        _animationProgress = max(rmsCache.average / rmsCache.max, 0f)
     }
 
     override fun onBufferReceived(p0: ByteArray?) {}
@@ -110,7 +151,7 @@ class SpeechRecognizerState(private val context: Context): RecognitionListener {
     private fun reset() {
         this.onUpdate = {}
         this.onFinish = {}
-        maxRms = 1f
+        rmsCache.clear()
         _animationProgress = 0f
         _isActive = false
     }
